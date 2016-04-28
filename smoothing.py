@@ -171,8 +171,6 @@ def smooth(reeb, epsilon):
         # l, r, k, d = smallest_edges[0]
         # crt_epsilon = d['weight'] / 2
     crt_epsilon = length_smallest_int(reeb)/2
-    print epsilon
-    print crt_epsilon
     if epsilon >= crt_epsilon:
  #           smooth_int(reeb, smallest_edges)
         reeb = shrink_ints(reeb, crt_epsilon, critical_vals)
@@ -186,4 +184,5 @@ def smooth(reeb, epsilon):
         reeb = add_at_two_ends(reeb,epsilon,critical_vals)
         reeb = remove_redundant_nodes(reeb)
     label_edges(reeb)
-    return nx.convert_node_labels_to_integers(remove_redundant_nodes(reeb))
+    reeb = preprocess(reeb)
+    return nx.convert_node_labels_to_integers(reeb)
