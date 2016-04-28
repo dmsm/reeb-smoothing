@@ -1,9 +1,13 @@
+from __future__ import division
+import math
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import matplotlib.animation as animation
+import matplotlib.gridspec as gridspec
 import smoothing
+
 
 from itertools import chain
 from collections import namedtuple
@@ -17,8 +21,8 @@ def vert_pos(n, step, base):  # generate a list of vertical positions
     return [start + i * step for i in range(n)]
 
 
-def label_node_pos(reeb, crtval,dist):
-    curnodes = [x for x in range(reeb.order()) if reeb.node[x]['f_val'] == crtval]
+def label_node_pos(reeb, crtval, dist):
+    curnodes = [x for x in reeb.nodes_iter() if reeb.node[x]['f_val'] == crtval]
     step = 0.2 * dist
     n = len(curnodes)
     pos = vert_pos(n, step, 0)
@@ -28,7 +32,7 @@ def label_node_pos(reeb, crtval,dist):
 
 def edge_path(reeb):  # with appropriate position labels
     oneCode = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4, ]
-    #height = 0.05  # could vary height based on number of nodes
+    # height = 0.05  # could vary height based on number of nodes
     verts = []
     codes = []
     for l in reeb.nodes():
@@ -53,23 +57,27 @@ def edge_path(reeb):  # with appropriate position labels
     return Path(verts, codes)
 
 
-def draw_reeb(reeb):  # reeb is a networkx MultiGraph
+def draw_reeb(reeb, ax):  # reeb is a networkx MultiGraph
     crtvals = smoothing.get_critical_vals(reeb)
     for i in range(len(crtvals)):
         v = crtvals[i]
         if i == 0:
-            dist = crtvals[i+1] - v
+            dist = crtvals[i + 1] - v
         else:
-            dist = v - crtvals[i-1]
-            if (i != len(crtvals) -1) and (crtvals[i+1] - v < dist):
-                dist = crtvals[i+1] - v
-        print dist
+            x = [x for x in reeb.nodes_iter() if reeb.node[x]['f_val'] == v][0]
+            if 'side' not in reeb.node[x]:
+                dist = v - crtvals[i - 1]
+                if (i != len(crtvals) - 1) and (crtvals[i + 1] - v < dist):
+                    dist = crtvals[i + 1] - v
+            elif reeb.node[x]['side'] == 'l':
+                dist = v - crtvals[i - 1]
+            else:
+                dist = crtvals[i + 1] - v
         label_node_pos(reeb, v, dist)
-    patch = patches.PathPatch(edge_path(reeb), facecolor='none', lw=2)
+    patch = patches.PathPatch(edge_path(reeb), facecolor='none', lw=1)
     ax.add_patch(patch)
     ax.set_xlim(min(v for v in crtvals) - 1, max(v for v in crtvals) + 1)
     ax.set_ylim(-1, 1)
-    plt.show()
 
 
 def animate_reeb(n, reeb):
@@ -79,11 +87,17 @@ def animate_reeb(n, reeb):
     for i in range(len(crtvals)):
         v = crtvals[i]
         if i == 0:
-            dist = crtvals[i+1] - v
+            dist = crtvals[i + 1] - v
         else:
-            dist = v - crtvals[i-1]
-            if (i != len(crtvals) -1) and (crtvals[i+1] - v < dist):
-                dist = crtvals[i+1] - v
+            x = [x for x in reeb.nodes_iter() if reeb.node[x]['f_val'] == v][0]
+            if 'side' not in reeb.node[x]:
+                dist = v - crtvals[i - 1]
+                if (i != len(crtvals) - 1) and (crtvals[i + 1] - v < dist):
+                    dist = crtvals[i + 1] - v
+            elif reeb.node[x]['side'] == 'l':
+                dist = v - crtvals[i - 1]
+            else:
+                dist = crtvals[i + 1] - v
         label_node_pos(reeb, v, dist)
     patch = patches.PathPatch(edge_path(reeb), facecolor='none', lw=2)
     ax.add_patch(patch)
@@ -92,7 +106,6 @@ def animate_reeb(n, reeb):
 
 
 fig = plt.figure()
-ax = fig.add_subplot(111)
 reeb = nx.MultiGraph()
 reeb.add_nodes_from([0, 1, 2, 3, 4])
 reeb.node[0]['f_val'] = 0
@@ -103,12 +116,31 @@ reeb.node[4]['f_val'] = 1
 reeb.add_edges_from([(0, 1), (0, 1), (1, 2), (1, 3),
                      (3, 4), (3, 4), (2, 4), (3, 4), (0, 1)])
 # draw_reeb(reeb)
+# plt.show()
 
+num_plots = 12
+cols = int(math.floor(math.sqrt(num_plots)))
+rows = (num_plots - 1) // cols + 1
+crit_vals = smoothing.get_critical_vals(reeb)
+interval = (crit_vals[-1] - crit_vals[0]) / 2
+gs = gridspec.GridSpec(rows, cols)
 
-reeb = smoothing.smooth(reeb,0.1)
-
-draw_reeb(reeb)
-
-
-# ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb], interval=20)
+plots = []
+for i in range(num_plots):
+    row = i // cols
+    col = i % cols
+    plots.append(fig.add_subplot(gs[row, col]))
+    epsilon = interval * i / (num_plots - 1)
+    new_reeb = smoothing.smooth(reeb, epsilon)
+    plots[-1].set_title("epsilon = {:.2}".format(epsilon))
+    draw_reeb(new_reeb, plots[-1])
+fig.tight_layout()
 plt.show()
+
+# reeb = smoothing.smooth(reeb, 0.5)
+# draw_reeb(reeb, ax)
+# plt.show()
+
+# ax = fig.add_subplot(111)
+# ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb], interval=20)
+# plt.show()
