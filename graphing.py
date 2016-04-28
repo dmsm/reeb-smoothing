@@ -88,9 +88,16 @@ reeb.add_edges_from([(0, 1), (0, 1), (1, 2), (1, 3),
                      (3, 4), (3, 4), (2, 4), (3, 4), (0, 1)])
 # draw_reeb(reeb)
 
-# reeb = smoothing.smooth(reeb, 0.5)
-# draw_reeb(reeb)
+reeb = smoothing.smooth(reeb,1.1)
+print reeb.node
+#print reeb.edge
+# smoothing.smooth_int(reeb, smoothing.get_smallest_int(reeb))
+# reeb = smoothing.remove_redundant_nodes(reeb)
+#reeb = smoothing.smooth(reeb,0.1)
+print reeb.node
+draw_reeb(reeb)
 
-smoothing.label_edges(reeb)
-ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb], interval=20)
+
+#smoothing.label_edges(reeb)
+#ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb], interval=20)
 plt.show()
