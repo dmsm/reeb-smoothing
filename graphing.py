@@ -1,20 +1,19 @@
 from __future__ import division
 import math
+import itertools as it
+
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 import matplotlib.gridspec as gridspec
+
 import smoothing
 
 
-from itertools import chain
-from collections import namedtuple
-
-
 def vert_pos(n, step, base):  # generate a list of vertical positions
-    if (n % 2) == 0:
+    if n % 2 == 0:
         start = base + step / 2 - (n / 2) * step
     else:
         start = base - (n / 2) * step
@@ -31,8 +30,7 @@ def label_node_pos(reeb, crtval, dist):
 
 
 def edge_path(reeb):  # with appropriate position labels
-    oneCode = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4, ]
-    # height = 0.05  # could vary height based on number of nodes
+    one_code = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4]
     verts = []
     codes = []
     for l in reeb.nodes():
@@ -40,7 +38,7 @@ def edge_path(reeb):  # with appropriate position labels
             if reeb.node[r]['f_val'] > reeb.node[l]['f_val']:
                 dist = reeb.node[r]['f_val'] - reeb.node[l]['f_val']
                 height = 0.05 * dist
-                num_edges = len([k for x, y, k in reeb.edges(keys=True)
+                num_edges = len([1 for x, y in reeb.edges()
                                  if (x == l) and (y == r) or (x == r) and (y == l)])
                 lval = reeb.node[l]['f_val']
                 rval = reeb.node[r]['f_val']
@@ -53,56 +51,37 @@ def edge_path(reeb):  # with appropriate position labels
                 for i in range(num_edges):
                     verts.extend([(lval, lpos), (lrefval, lrefpos[i]),
                                   (rrefval, rrefpos[i]), (rval, rpos)])
-                    codes.extend(oneCode)
+                    codes.extend(one_code)
     return Path(verts, codes)
 
 
 def draw_reeb(reeb, ax):  # reeb is a networkx MultiGraph
     crtvals = smoothing.get_critical_vals(reeb)
     for i in range(len(crtvals)):
-        v = crtvals[i]
+        c = crtvals[i]
         if i == 0:
-            dist = crtvals[i + 1] - v
+            dist = crtvals[i + 1] - c
         else:
-            x = [x for x in reeb.nodes_iter() if reeb.node[x]['f_val'] == v][0]
+            x = [x for x in reeb.nodes_iter() if reeb.node[x]['f_val'] == c][0]
             if 'side' not in reeb.node[x]:
-                dist = v - crtvals[i - 1]
-                if (i != len(crtvals) - 1) and (crtvals[i + 1] - v < dist):
-                    dist = crtvals[i + 1] - v
+                dist = c - crtvals[i - 1]
+                if (i != len(crtvals) - 1) and (crtvals[i + 1] - c < dist):
+                    dist = crtvals[i + 1] - c
             elif reeb.node[x]['side'] == 'l':
-                dist = v - crtvals[i - 1]
+                dist = c - crtvals[i - 1]
             else:
-                dist = crtvals[i + 1] - v
-        label_node_pos(reeb, v, dist)
+                dist = crtvals[i + 1] - c
+        label_node_pos(reeb, c, dist)
     patch = patches.PathPatch(edge_path(reeb), facecolor='none', lw=1)
     ax.add_patch(patch)
-    ax.set_xlim(min(v for v in crtvals) - 1, max(v for v in crtvals) + 1)
+    ax.set_xlim(min(c for c in crtvals) - 1, max(c for c in crtvals) + 1)
     ax.set_ylim(-1, 1)
 
 
-def animate_reeb(n, reeb):
+def animate_reeb(n, reeb, ax, delta):
     ax.clear()
-    reeb = smoothing.smooth(reeb, 0.01 * (n + 1))
-    crtvals = smoothing.get_critical_vals(reeb)
-    for i in range(len(crtvals)):
-        v = crtvals[i]
-        if i == 0:
-            dist = crtvals[i + 1] - v
-        else:
-            x = [x for x in reeb.nodes_iter() if reeb.node[x]['f_val'] == v][0]
-            if 'side' not in reeb.node[x]:
-                dist = v - crtvals[i - 1]
-                if (i != len(crtvals) - 1) and (crtvals[i + 1] - v < dist):
-                    dist = crtvals[i + 1] - v
-            elif reeb.node[x]['side'] == 'l':
-                dist = v - crtvals[i - 1]
-            else:
-                dist = crtvals[i + 1] - v
-        label_node_pos(reeb, v, dist)
-    patch = patches.PathPatch(edge_path(reeb), facecolor='none', lw=2)
-    ax.add_patch(patch)
-    ax.set_xlim(min(v for v in crtvals) - 1, max(v for v in crtvals) + 1)
-    ax.set_ylim(-1, 1)
+    reeb = smoothing.smooth(reeb, delta * n)
+    draw_reeb(reeb, ax)
 
 
 fig = plt.figure()
@@ -115,32 +94,30 @@ reeb.node[3]['f_val'] = 3
 reeb.node[4]['f_val'] = 1
 reeb.add_edges_from([(0, 1), (0, 1), (1, 2), (1, 3),
                      (3, 4), (3, 4), (2, 4), (3, 4), (0, 1)])
-# draw_reeb(reeb)
+
+# num_plots = 12
+# cols = int(math.floor(math.sqrt(num_plots)))
+# rows = (num_plots - 1) // cols + 1
+# crit_vals = smoothing.get_critical_vals(reeb)
+# interval = (crit_vals[-1] - crit_vals[0]) / 2
+# gs = gridspec.GridSpec(rows, cols)
+#
+# plots = []
+# for i in range(num_plots):
+#     row = i // cols
+#     col = i % cols
+#     plots.append(fig.add_subplot(gs[row, col]))
+#     epsilon = interval * i / (num_plots - 1)
+#     new_reeb = smoothing.smooth(reeb, epsilon)
+#     plots[-1].set_title("epsilon = {:.2}".format(epsilon))
+#     draw_reeb(new_reeb, plots[-1])
+# fig.tight_layout()
 # plt.show()
-
-num_plots = 12
-cols = int(math.floor(math.sqrt(num_plots)))
-rows = (num_plots - 1) // cols + 1
-crit_vals = smoothing.get_critical_vals(reeb)
-interval = (crit_vals[-1] - crit_vals[0]) / 2
-gs = gridspec.GridSpec(rows, cols)
-
-plots = []
-for i in range(num_plots):
-    row = i // cols
-    col = i % cols
-    plots.append(fig.add_subplot(gs[row, col]))
-    epsilon = interval * i / (num_plots - 1)
-    new_reeb = smoothing.smooth(reeb, epsilon)
-    plots[-1].set_title("epsilon = {:.2}".format(epsilon))
-    draw_reeb(new_reeb, plots[-1])
-fig.tight_layout()
-plt.show()
 
 # reeb = smoothing.smooth(reeb, 0.5)
 # draw_reeb(reeb, ax)
 # plt.show()
 
-# ax = fig.add_subplot(111)
-# ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb], interval=20)
-# plt.show()
+ax = fig.add_subplot(111)
+ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb, ax, 0.01], interval=20)
+plt.show()
