@@ -84,7 +84,44 @@ def animate_reeb(n, reeb, ax, delta):
     draw_reeb(reeb, ax)
 
 
-fig = plt.figure()
+
+def show_animation(reeb):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb, ax, 0.01], interval=20)
+    plt.show()
+    
+
+def show_plot(reeb, epsilon):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    reeb = smoothing.smooth(reeb, epsilon)
+    draw_reeb(reeb, ax)
+    plt.show()
+
+def show_multiplots(reeb):
+    fig = plt.figure()
+    num_plots = 12
+    cols = int(math.sqrt(num_plots))
+    rows = (num_plots - 1) // cols + 1
+    crit_vals = smoothing.get_critical_vals(reeb)
+    interval = (crit_vals[-1] - crit_vals[0]) / 2
+    gs = gridspec.GridSpec(rows, cols)
+
+    plots = []
+    for i in range(num_plots):
+        row = i // cols
+        col = i % cols
+        plots.append(fig.add_subplot(gs[row, col]))
+        epsilon = interval * i / (num_plots - 1)
+        new_reeb = smoothing.smooth(reeb, epsilon)
+        plots[-1].set_title("epsilon = {:.2f}".format(epsilon))
+        draw_reeb(new_reeb, plots[-1])
+    fig.tight_layout()
+    plt.show()
+
+
+# fig = plt.figure()
 reeb = nx.MultiGraph()
 reeb.add_nodes_from([0, 1, 2, 3, 4])
 reeb.node[0]['f_val'] = 0
@@ -95,29 +132,8 @@ reeb.node[4]['f_val'] = 1
 reeb.add_edges_from([(0, 1), (0, 1), (1, 2), (1, 3),
                      (3, 4), (3, 4), (2, 4), (3, 4), (0, 1)])
 
-num_plots = 12
-cols = int(math.sqrt(num_plots))
-rows = (num_plots - 1) // cols + 1
-crit_vals = smoothing.get_critical_vals(reeb)
-interval = (crit_vals[-1] - crit_vals[0]) / 2
-gs = gridspec.GridSpec(rows, cols)
+#show_animation(reeb)
+#show_plot(reeb, 0.5)
+show_multiplots(reeb)
 
-plots = []
-for i in range(num_plots):
-    row = i // cols
-    col = i % cols
-    plots.append(fig.add_subplot(gs[row, col]))
-    epsilon = interval * i / (num_plots - 1)
-    new_reeb = smoothing.smooth(reeb, epsilon)
-    plots[-1].set_title("epsilon = {:.2f}".format(epsilon))
-    draw_reeb(new_reeb, plots[-1])
-fig.tight_layout()
-plt.show()
 
-# reeb = smoothing.smooth(reeb, 0.5)
-# draw_reeb(reeb, ax)
-# plt.show()
-
-# ax = fig.add_subplot(111)
-# ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb, ax, 0.01], interval=20)
-# plt.show()
