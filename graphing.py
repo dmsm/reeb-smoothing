@@ -121,19 +121,28 @@ def show_multiplots(reeb):
     plt.show()
 
 
-# fig = plt.figure()
-reeb = nx.MultiGraph()
-reeb.add_nodes_from([0, 1, 2, 3, 4])
-reeb.node[0]['f_val'] = 0
-reeb.node[1]['f_val'] = 1
-reeb.node[2]['f_val'] = 3
-reeb.node[3]['f_val'] = 3
-reeb.node[4]['f_val'] = 1
-reeb.add_edges_from([(0, 1), (0, 1), (1, 2), (1, 3),
+reeb1 = nx.MultiGraph()
+reeb1.add_nodes_from([0, 1, 2, 3, 4])
+reeb1.node[0]['f_val'] = 0
+reeb1.node[1]['f_val'] = 1
+reeb1.node[2]['f_val'] = 3
+reeb1.node[3]['f_val'] = 3
+reeb1.node[4]['f_val'] = 1
+reeb1.add_edges_from([(0, 1), (0, 1), (1, 2), (1, 3),
                      (3, 4), (3, 4), (2, 4), (3, 4), (0, 1)])
 
-#show_animation(reeb)
-#show_plot(reeb, 0.5)
-show_multiplots(reeb)
+
+reeb2 = nx.MultiGraph()
+reeb2.add_nodes_from([0,1,2,3,4,5])
+fvals2 = [0,1,2,3,4,5]
+for i in range(6):
+    reeb2.node[i]['f_val'] = fvals2[i]
+reeb2.add_edges_from([(0,3),(0,2),(1,2),(1,3),(3,4),(3,4),(4,5)])
+
+
+
+#show_animation(reeb1)
+#show_plot(reeb1, 0.5)
+show_multiplots(reeb1)
 
 

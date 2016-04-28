@@ -37,8 +37,9 @@ def get_smallest_int_length(reeb):
 
 
 def remove_redundant_nodes(reeb):
-    nodes = [x for x, d in reeb.degree().items() if d == 2]
+    nodes = [x for x, d in reeb.degree().items() if d == 2 and len(reeb[x]) == 2]
     for x in nodes:
+        print reeb.node[x]
         f_val = reeb.node[x]['f_val']
         adj1, adj2 = reeb[x].keys()
         if (reeb.node[adj1]['f_val'] - f_val) * (reeb.node[adj2]['f_val'] - f_val) < 0:
