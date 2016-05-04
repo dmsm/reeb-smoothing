@@ -37,7 +37,7 @@ def edge_path(reeb):  # with appropriate position labels
         for r in reeb.neighbors(l):
             if reeb.node[r]['f_val'] > reeb.node[l]['f_val']:
                 dist = reeb.node[r]['f_val'] - reeb.node[l]['f_val']
-                height = 0.2 * dist
+                height = 0.15 * dist
                 num_edges = len([1 for x, y in reeb.edges()
                                  if (x == l) and (y == r) or (x == r) and (y == l)])
                 lval = reeb.node[l]['f_val']
@@ -140,16 +140,24 @@ for i in range(6):
 reeb2.add_edges_from([(0,3),(0,2),(1,2),(1,3),(3,4),(3,4),(4,5)])
 
 reeb3 = nx.MultiGraph()
-reeb3.add_nodes_from([0,1,2,3,4,5])
-fvals3 = [-1,0,1,2,3,4]
-for i in range(6):
+reeb3.add_nodes_from([0,1,2,3,4,5,6,7,8,9,10])
+fvals3 = [0,1,1,1.5,1.7,1.7,1.7,2,2,2,3]
+for i in range(11):
     reeb3.node[i]['f_val'] = fvals3[i]
-reeb3.add_edges_from([(0,2),(1,2),(2,3),(3,4),(3,5)])
+reeb3.add_edges_from([(0,1),(1,5), (1,5),(1,6),(2,5),(3,6), (3,6),
+    (4,7),(5,8),(6,8),(6,7),(6,9),(7,10),(8,10)])
 
 
+reeb4 = nx.MultiGraph()
+reeb4.add_nodes_from([0,1,2])
+fvals4 = [0,0.5,0.7]
+for i in range(3):
+    reeb4.node[i]['f_val'] = fvals4[i]
+reeb4.add_edges_from([(0,2),(0,2),(1,2),(1,2)])
 
-# show_animation(reeb3)
-# show_plot(reeb3, 1)
-show_multiplots(reeb2)
+
+# show_animation(reeb4)
+show_plot(reeb4, 0.1)
+# show_multiplots(reeb2)
 
 

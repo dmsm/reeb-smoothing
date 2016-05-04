@@ -116,6 +116,8 @@ def smooth(reeb, epsilon):
         reeb = remove_redundant_nodes(reeb)
         print reeb.nodes()
         print reeb.edges()
+        print epsilon, crt_epsilon
+        print epsilon - crt_epsilon
         reeb = smooth(reeb, epsilon - crt_epsilon)
     else:
         reeb = shrink_ints(reeb, epsilon, critical_vals)
