@@ -39,7 +39,7 @@ def get_smallest_int_length(reeb):
 def remove_redundant_nodes(reeb):
     nodes = [x for x, d in reeb.degree().items() if d == 2 and len(reeb[x]) == 2]
     for x in nodes:
-        print reeb.node[x]
+        # print reeb.node[x]
         f_val = reeb.node[x]['f_val']
         adj1, adj2 = reeb[x].keys()
         if (reeb.node[adj1]['f_val'] - f_val) * (reeb.node[adj2]['f_val'] - f_val) < 0:
@@ -75,7 +75,7 @@ def shrink_ints(reeb, epsilon, critical_vals):
             sub_reeb = reeb.subgraph(left_nodes + right_nodes)
             for component in nx.connected_component_subgraphs(sub_reeb):
                 reeb.remove_edges_from(component.edges())
-                component_node = reeb.number_of_nodes()
+                component_node = max(reeb.node) + 1
                 for x in component.nodes():
                     reeb.add_edge(x, component_node)
                 reeb.node[component_node]['f_val'] = (l + r) / 2
@@ -108,10 +108,14 @@ def smooth(reeb, epsilon):
     label_edges(reeb)
     critical_vals = get_critical_vals(reeb)
     crt_epsilon = get_smallest_int_length(reeb) / 2
+    print crt_epsilon, epsilon
+    print critical_vals
     if epsilon >= crt_epsilon:
         reeb = shrink_ints(reeb, crt_epsilon, critical_vals)
         reeb = add_at_two_ends(reeb, crt_epsilon, critical_vals)
         reeb = remove_redundant_nodes(reeb)
+        print reeb.nodes()
+        print reeb.edges()
         reeb = smooth(reeb, epsilon - crt_epsilon)
     else:
         reeb = shrink_ints(reeb, epsilon, critical_vals)

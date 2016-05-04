@@ -14,9 +14,9 @@ import smoothing
 
 def vert_pos(n, step, base):  # generate a list of vertical positions
     if n % 2 == 0:
-        start = base + step / 2 - (n / 2) * step
+        start = base + step / 2 - (n // 2) * step
     else:
-        start = base - (n / 2) * step
+        start = base - (n // 2) * step
     return [start + i * step for i in range(n)]
 
 
@@ -37,7 +37,7 @@ def edge_path(reeb):  # with appropriate position labels
         for r in reeb.neighbors(l):
             if reeb.node[r]['f_val'] > reeb.node[l]['f_val']:
                 dist = reeb.node[r]['f_val'] - reeb.node[l]['f_val']
-                height = 0.05 * dist
+                height = 0.2 * dist
                 num_edges = len([1 for x, y in reeb.edges()
                                  if (x == l) and (y == r) or (x == r) and (y == l)])
                 lval = reeb.node[l]['f_val']
@@ -139,10 +139,17 @@ for i in range(6):
     reeb2.node[i]['f_val'] = fvals2[i]
 reeb2.add_edges_from([(0,3),(0,2),(1,2),(1,3),(3,4),(3,4),(4,5)])
 
+reeb3 = nx.MultiGraph()
+reeb3.add_nodes_from([0,1,2,3,4,5])
+fvals3 = [-1,0,1,2,3,4]
+for i in range(6):
+    reeb3.node[i]['f_val'] = fvals3[i]
+reeb3.add_edges_from([(0,2),(1,2),(2,3),(3,4),(3,5)])
 
 
-#show_animation(reeb1)
-#show_plot(reeb1, 0.5)
-show_multiplots(reeb1)
+
+# show_animation(reeb3)
+# show_plot(reeb3, 1)
+show_multiplots(reeb2)
 
 
