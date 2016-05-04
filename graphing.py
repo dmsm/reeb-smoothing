@@ -1,6 +1,7 @@
 from __future__ import division
 import math
 import itertools as it
+from decimal import Decimal, getcontext
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -10,6 +11,9 @@ import matplotlib.animation as animation
 import matplotlib.gridspec as gridspec
 
 import smoothing
+
+
+getcontext().prec = 3
 
 
 def vert_pos(n, step, base):  # generate a list of vertical positions
@@ -22,7 +26,7 @@ def vert_pos(n, step, base):  # generate a list of vertical positions
 
 def label_node_pos(reeb, crtval, dist):
     curnodes = [x for x in reeb.nodes_iter() if reeb.node[x]['f_val'] == crtval]
-    step = 0.2 * dist
+    step = Decimal('0.2') * dist
     n = len(curnodes)
     pos = vert_pos(n, step, 0)
     for i in range(n):
@@ -37,7 +41,7 @@ def edge_path(reeb):  # with appropriate position labels
         for r in reeb.neighbors(l):
             if reeb.node[r]['f_val'] > reeb.node[l]['f_val']:
                 dist = reeb.node[r]['f_val'] - reeb.node[l]['f_val']
-                height = 0.15 * dist
+                height = Decimal('0.15') * dist
                 num_edges = len([1 for x, y in reeb.edges()
                                  if (x == l) and (y == r) or (x == r) and (y == l)])
                 lval = reeb.node[l]['f_val']
@@ -74,11 +78,12 @@ def draw_reeb(reeb, ax):  # reeb is a networkx MultiGraph
         label_node_pos(reeb, c, dist)
     patch = patches.PathPatch(edge_path(reeb), facecolor='none', lw=1)
     ax.add_patch(patch)
-    ax.set_xlim(min(c for c in crtvals) - 1, max(c for c in crtvals) + 1)
+    ax.set_xlim(min(float(c) for c in crtvals) - 1, max(float(c) for c in crtvals) + 1)
     ax.set_ylim(-1, 1)
 
 
 def animate_reeb(n, reeb, ax, delta):
+    print delta * n
     ax.clear()
     reeb = smoothing.smooth(reeb, delta * n)
     draw_reeb(reeb, ax)
@@ -90,7 +95,7 @@ def show_animation(reeb):
     ax = fig.add_subplot(111)
     ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb, ax, 0.01], interval=20)
     plt.show()
-    
+
 
 def show_plot(reeb, epsilon):
     fig = plt.figure()
@@ -156,8 +161,6 @@ for i in range(3):
 reeb4.add_edges_from([(0,2),(0,2),(1,2),(1,2)])
 
 
-# show_animation(reeb4)
-show_plot(reeb4, 0.1)
-# show_multiplots(reeb2)
-
-
+show_animation(reeb3)
+# show_plot(reeb3, 0.1)
+# show_multiplots(reeb3)

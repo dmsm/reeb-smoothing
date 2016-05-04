@@ -1,6 +1,10 @@
 from __future__ import division
+from decimal import Decimal, getcontext
 
 import networkx as nx
+
+
+getcontext().prec = 3
 
 
 def get_critical_vals(reeb):
@@ -9,6 +13,8 @@ def get_critical_vals(reeb):
 
 def preprocess(reeb):
     reeb = nx.convert_node_labels_to_integers(reeb)
+    for x in reeb.node:
+        reeb.node[x]['f_val'] = Decimal(str(reeb.node[x]['f_val']))
     critical_vals = get_critical_vals(reeb)
     for u, v, k in reeb.edges(keys=True):
         intersections = [c for c in critical_vals if
@@ -39,7 +45,6 @@ def get_smallest_int_length(reeb):
 def remove_redundant_nodes(reeb):
     nodes = [x for x, d in reeb.degree().items() if d == 2 and len(reeb[x]) == 2]
     for x in nodes:
-        # print reeb.node[x]
         f_val = reeb.node[x]['f_val']
         adj1, adj2 = reeb[x].keys()
         if (reeb.node[adj1]['f_val'] - f_val) * (reeb.node[adj2]['f_val'] - f_val) < 0:
@@ -102,22 +107,17 @@ def add_at_two_ends(reeb, epsilon, critical_vals):
 
 
 def smooth(reeb, epsilon):
+    epsilon = Decimal(str(epsilon))
+    reeb = preprocess(reeb)
     if epsilon <= 0:
         return reeb
-    reeb = preprocess(reeb)
     label_edges(reeb)
     critical_vals = get_critical_vals(reeb)
     crt_epsilon = get_smallest_int_length(reeb) / 2
-    print crt_epsilon, epsilon
-    print critical_vals
     if epsilon >= crt_epsilon:
         reeb = shrink_ints(reeb, crt_epsilon, critical_vals)
         reeb = add_at_two_ends(reeb, crt_epsilon, critical_vals)
         reeb = remove_redundant_nodes(reeb)
-        print reeb.nodes()
-        print reeb.edges()
-        print epsilon, crt_epsilon
-        print epsilon - crt_epsilon
         reeb = smooth(reeb, epsilon - crt_epsilon)
     else:
         reeb = shrink_ints(reeb, epsilon, critical_vals)
