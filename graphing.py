@@ -33,7 +33,7 @@ def label_node_pos(reeb, crtval, dist):
         reeb.node[curnodes[i]]['pos'] = pos[i]
 
 
-def edge_path(reeb):  # with appropriate position labels
+def edge_path(reeb, ax):  # with appropriate position labels
     one_code = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4]
     verts = []
     codes = []
@@ -41,9 +41,9 @@ def edge_path(reeb):  # with appropriate position labels
         for r in reeb.neighbors(l):
             if reeb.node[r]['f_val'] > reeb.node[l]['f_val']:
                 dist = reeb.node[r]['f_val'] - reeb.node[l]['f_val']
-                height = Decimal('0.15') * dist
+                height = Decimal('0.3') * dist
                 num_edges = len([1 for x, y in reeb.edges()
-                                 if (x == l) and (y == r) or (x == r) and (y == l)])
+                                 if (x == l and y == r) or (x == r and y == l)])
                 lval = reeb.node[l]['f_val']
                 rval = reeb.node[r]['f_val']
                 lpos = reeb.node[l]['pos']
@@ -56,6 +56,10 @@ def edge_path(reeb):  # with appropriate position labels
                     verts.extend([(lval, lpos), (lrefval, lrefpos[i]),
                                   (rrefval, rrefpos[i]), (rval, rpos)])
                     codes.extend(one_code)
+    crtvals = smoothing.get_critical_vals(reeb)
+    crtverts = [(x, y) for x, y in verts if x in crtvals]
+    xs, ys = zip(*crtverts)
+    ax.plot(xs, ys, 'ro', ms=3)
     return Path(verts, codes)
 
 
@@ -76,14 +80,13 @@ def draw_reeb(reeb, ax):  # reeb is a networkx MultiGraph
             else:
                 dist = crtvals[i + 1] - c
         label_node_pos(reeb, c, dist)
-    patch = patches.PathPatch(edge_path(reeb), facecolor='none', lw=1)
+    patch = patches.PathPatch(edge_path(reeb, ax), facecolor='none', lw=1)
     ax.add_patch(patch)
     ax.set_xlim(min(float(c) for c in crtvals) - 1, max(float(c) for c in crtvals) + 1)
     ax.set_ylim(-1, 1)
 
 
 def animate_reeb(n, reeb, ax, delta):
-    print delta * n
     ax.clear()
     reeb = smoothing.smooth(reeb, delta * n)
     draw_reeb(reeb, ax)
@@ -161,6 +164,6 @@ for i in range(3):
 reeb4.add_edges_from([(0,2),(0,2),(1,2),(1,2)])
 
 
-show_animation(reeb3)
+show_animation(reeb1)
 # show_plot(reeb3, 0.1)
 # show_multiplots(reeb3)

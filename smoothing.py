@@ -74,7 +74,7 @@ def shrink_ints(reeb, epsilon, critical_vals):
             for u, v in sub_edges:
                 reeb.add_edge(u + n, v + n)
             reeb.remove_edges_from(sub_edges)
-        if r - l == 2 * epsilon:
+        elif r - l == 2 * epsilon:
             left_nodes = [x for x in reeb.nodes() if reeb.node[x]['f_val'] == l]
             right_nodes = [x for x in reeb.nodes() if reeb.node[x]['f_val'] == r]
             sub_reeb = reeb.subgraph(left_nodes + right_nodes)
