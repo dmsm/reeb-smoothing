@@ -2,6 +2,8 @@ from __future__ import division
 import math
 import itertools as it
 from decimal import Decimal, getcontext
+import argparse
+import ast
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -129,41 +131,26 @@ def show_multiplots(reeb):
     plt.show()
 
 
-reeb1 = nx.MultiGraph()
-reeb1.add_nodes_from([0, 1, 2, 3, 4])
-reeb1.node[0]['f_val'] = 0
-reeb1.node[1]['f_val'] = 1
-reeb1.node[2]['f_val'] = 3
-reeb1.node[3]['f_val'] = 3
-reeb1.node[4]['f_val'] = 1
-reeb1.add_edges_from([(0, 1), (0, 1), (1, 2), (1, 3),
-                     (3, 4), (3, 4), (2, 4), (3, 4), (0, 1)])
+parser = argparse.ArgumentParser()
+parser.add_argument("reeb", help="smooth a given reebg raph")
+parser.add_argument("--multiplot", help="display multiplots instead of animation",
+                    action="store_true")
+parser.add_argument("--epsilon", type=float,
+                    help="display single plot")
+args = parser.parse_args()
 
+with open(args.reeb, 'r') as f:
+    fvals = list(ast.literal_eval(f.readline()))
+    edges = list(ast.literal_eval(f.readline()))
+reeb = nx.MultiGraph()
+reeb.add_nodes_from(range(len(fvals)))
+for i in range(len(fvals)):
+    reeb.node[i]['f_val'] = fvals[i]
+reeb.add_edges_from(edges)
 
-reeb2 = nx.MultiGraph()
-reeb2.add_nodes_from([0,1,2,3,4,5])
-fvals2 = [0,1,2,3,4,5]
-for i in range(6):
-    reeb2.node[i]['f_val'] = fvals2[i]
-reeb2.add_edges_from([(0,3),(0,2),(1,2),(1,3),(3,4),(3,4),(4,5)])
-
-reeb3 = nx.MultiGraph()
-reeb3.add_nodes_from([0,1,2,3,4,5,6,7,8,9,10])
-fvals3 = [0,1,1,1.5,1.7,1.7,1.7,2,2,2,3]
-for i in range(11):
-    reeb3.node[i]['f_val'] = fvals3[i]
-reeb3.add_edges_from([(0,1),(1,5), (1,5),(1,6),(2,5),(3,6), (3,6),
-    (4,7),(5,8),(6,8),(6,7),(6,9),(7,10),(8,10)])
-
-
-reeb4 = nx.MultiGraph()
-reeb4.add_nodes_from([0,1,2])
-fvals4 = [0,0.5,0.7]
-for i in range(3):
-    reeb4.node[i]['f_val'] = fvals4[i]
-reeb4.add_edges_from([(0,2),(0,2),(1,2),(1,2)])
-
-
-show_animation(reeb1)
-# show_plot(reeb3, 0.1)
-# show_multiplots(reeb3)
+if args.multiplot:
+    show_multiplots(reeb)
+elif args.epsilon:
+    show_plot(reeb, args.epsilon)
+else:
+    show_animation(reeb)
