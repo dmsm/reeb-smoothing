@@ -98,6 +98,7 @@ def animate_reeb(n, reeb, ax, delta):
 def show_animation(reeb):
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    ax.yaxis.set_visible(False)
     ani = animation.FuncAnimation(fig, animate_reeb, 150, fargs=[reeb, ax, 0.01], interval=20)
     plt.show()
 
@@ -105,6 +106,7 @@ def show_animation(reeb):
 def show_plot(reeb, epsilon):
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    ax.yaxis.set_visible(False)
     reeb = smoothing.smooth(reeb, epsilon)
     draw_reeb(reeb, ax)
     plt.show()
@@ -126,6 +128,7 @@ def show_multiplots(reeb):
         epsilon = interval * i / (num_plots - 1)
         new_reeb = smoothing.smooth(reeb, epsilon)
         plots[-1].set_title("epsilon = {:.2f}".format(epsilon))
+        plots[-1].yaxis.set_visible(False)
         draw_reeb(new_reeb, plots[-1])
     fig.tight_layout()
     plt.show()
